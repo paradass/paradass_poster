@@ -3,12 +3,15 @@
 import json
 import requests
 import tkinter as tk
+from tkinter import messagebox
 
 class Poster:
     def __init__(self):
         self.window = tk.Tk()
         self.window.title("Paradass Poster")
         self.window.geometry("330x550")
+        icon = tk.PhotoImage(file="icon.png")
+        self.window.iconphoto(True,icon)
 
         self.label1 = tk.Label(self.window,text="Target url:",font=("Arial",12))
         self.label1.place(x=10,y=10)
@@ -33,16 +36,26 @@ class Poster:
 
         self.window.mainloop()
     
-    def post(self):
-        url = self.url_box.get()
-        payload = json.loads(self.payload_box.get("0.1",tk.END))
-        response = requests.post(url=url,json=payload)
-        self.response_box.delete("1.0",tk.END)
-        if response.status_code == 200:
-            self.response_box.insert("1.0","\n"+response.text)
-            self.response_box.insert("1.0","Success:")
-        else:
-            self.response_box.insert("1.0",response.text)
+    @staticmethod
+    def show_error(e:Exception):
+        messagebox.showerror("Error",str(e))
 
+    def post(self):
+        try:
+            url = self.url_box.get()
+            payload = json.loads(self.payload_box.get("1.0",tk.END))
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"}
+            response = requests.post(url=url,json=payload,headers=headers,timeout=10)
+            self.response_box.delete("1.0",tk.END)
+
+            if response.ok:
+                self.response_box.insert("1.0","\n"+response.text)
+                self.response_box.insert("1.0","Success:")
+            else:
+                self.response_box.insert("1.0","\n"+response.text)
+                self.response_box.insert("1.0","Fail:")
+        except Exception as e:
+            self.show_error(e)
+            return
 
 poster = Poster()
